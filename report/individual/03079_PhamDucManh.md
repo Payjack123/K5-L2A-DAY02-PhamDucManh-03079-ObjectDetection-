@@ -4,7 +4,7 @@
 
 - Họ tên: Phạm Đức Mạnh
 - MSSV: 03079
-- Email: manh.pd03079@...
+- Email: mp01689370315@gmail.com 
 - Lớp: K5 Level 2A (L2A)
 - Link repo bài làm: https://github.com/Payjack123/K5-L2A-DAY02-PhamDucManh-03079-ObjectDetection-
 - Link Colab đã chạy: https://colab.research.google.com/github/Payjack123/K5-L2A-DAY02-PhamDucManh-03079-ObjectDetection-/blob/main/notebooks/day2_annotation_to_yolo.ipynb
