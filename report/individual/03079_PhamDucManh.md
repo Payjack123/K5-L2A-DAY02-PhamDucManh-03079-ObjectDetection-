@@ -49,7 +49,6 @@ Tóm tắt các quyết định và cách áp dụng schema:
 
 - **Dẫn tới file kết quả:** [`outputs/annotation_evaluation.json`](../../outputs/annotation_evaluation.json)
 - **Quyết định giữ nguyên bộ nhãn và phân tích nguyên nhân:**
-  + Học viên quyết định giữ nguyên bộ nhãn ban đầu nhằm phản ánh trung thực kết quả gán nhãn độc lập của con người và bảo toàn cấu trúc nhãn gốc để quan sát tác động lên mô hình ở CP6.
   + **Về độ bám sát (Mean IoU = 0.8526):** Đạt mức Xuất sắc (vượt xa ngưỡng yêu cầu $\ge 0.70$), các bounding box ôm sát khung thân xe vật lý thật, không bị lỏng viền.
   + **Về số lượng False Positive (675 box):** Phân tích chi tiết cho thấy có 547 box nằm ngoài vùng quan tâm (ROI) của bộ nhãn gold chuẩn UA-DETRAC. Học viên đã gán chi tiết toàn bộ các xe ô tô đỗ ở đường gom, bãi xe phía sau rào chắn và dãy ki-ốt bên trái dải phân cách (theo đúng mô tả xe đỗ trong guideline), trong khi gold chuẩn chỉ đánh dấu các xe đang lưu thông trên trục đường chính.
   + **Về độ lệch nhãn (120 box):** Xuất phát từ sự mơ hồ giữa `bus` và `van` đối với các dòng xe chở khách cỡ nhỏ (minibus), và giữa `car` (bán tải) với `truck`.
