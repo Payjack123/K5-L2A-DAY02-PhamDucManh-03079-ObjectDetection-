@@ -7,7 +7,7 @@
 - Email: manh.pd03079@...
 - Lớp: K5 Level 2A (L2A)
 - Link repo bài làm: https://github.com/Payjack123/K5-L2A-DAY02-PhamDucManh-03079-ObjectDetection-
-- Link Colab đã chạy: [Sẽ cập nhật sau khi chạy Colab]
+- Link Colab đã chạy: https://colab.research.google.com/github/Payjack123/K5-L2A-DAY02-PhamDucManh-03079-ObjectDetection-/blob/main/notebooks/day2_annotation_to_yolo.ipynb
 
 ## 2. Schema và mini guideline
 
@@ -57,47 +57,61 @@ Tóm tắt các quyết định và cách áp dụng schema:
 
 ## 5. Kết quả YOLO
 
-- Runtime, GPU/CPU, phiên bản Ultralytics và Torch:
-- Các tham số thay đổi so với notebook nếu có và lý do:
-- Đường dẫn best checkpoint trong phiên chạy:
+- Runtime, GPU/CPU, phiên bản Ultralytics và Torch: Google Colab Tesla T4 GPU (14,913 MiB, CUDA:0), Python 3.13.16, PyTorch 2.14.1+cu130, Ultralytics 8.4.208.
+- Các tham số thay đổi so với notebook nếu có và lý do: Giữ nguyên cấu hình mặc định của bài lab (epochs=50, imgsz=640, batch=-1, seed=20260909) để đảm bảo tính tái lập.
+- Đường dẫn best checkpoint trong phiên chạy: `/content/Day2-Lab/outputs/yolo26_runs/vehicle_annotation/weights/best.pt`
 
 | Chỉ số trên 10 ảnh eval | Giá trị |
 |---|---:|
-| Precision | |
-| Recall | |
-| mAP50 | |
-| mAP50–95 | |
+| Precision | 0.4071 |
+| Recall | 0.2340 |
+| mAP50 | 0.2737 |
+| mAP50–95 | 0.2018 |
+
+*Chi tiết hiệu năng từng lớp:*
+- `car`: Precision = 0.836, Recall = 0.653, mAP50 = 0.738, mAP50–95 = 0.523 (94 instances)
+- `truck`: Precision = 0.656, Recall = 0.200, mAP50 = 0.239, mAP50–95 = 0.206 (5 instances)
+- `bus`: Precision = 0.000, Recall = 0.000, mAP50 = 0.0143, mAP50–95 = 0.0047 (2 instances)
+- `van`: Precision = 0.136, Recall = 0.0833, mAP50 = 0.103, mAP50–95 = 0.0743 (12 instances)
 
 *Các thư mục assets từ Colab:*
-- `assets/eval_predictions/visuals/`
-- `assets/yolo26_runs/`
+- [`assets/eval_predictions/visuals/`](assets/eval_predictions/visuals/)
+- [`assets/yolo26_runs/`](assets/yolo26_runs/)
 
 Trả lời bốn câu hỏi cuối notebook:
 
 1. **Lớp nào recall thấp nhất? Ảnh nào minh họa?**
-   - [Sẽ trả lời dựa trên kết quả chạy thực tế trên Colab]
+   - Lớp `bus` có Recall thấp nhất, đạt **0.000 (0%)** (tiếp theo là `van` chỉ đạt 0.0833). Mô hình hoàn toàn không phát hiện được trường hợp nào trong số 2 xe buýt ở tập eval.
+   - Minh họa: Ảnh `drive_051.jpg` (có 1 xe buýt ở góc phải phía trên nhưng mô hình bỏ sót) và ảnh `drive_052.jpg` (xe buýt lớn đón trả khách tại trạm bị mô hình nhận diện nhầm).
 2. **Nếu mAP50 cao nhưng mAP50–95 thấp, cần kiểm điều gì trên box?**
-   - Cần kiểm tra độ bám sát (tightness) và hình học của bounding box. mAP50 cao nghĩa là mô hình đã định vị đúng vùng thô của xe và phân loại đúng class ở ngưỡng chồng khít lỏng (IoU 0.50). Tuy nhiên khi tăng ngưỡng IoU từ 0.50 lên 0.95, nếu viền box bị vẽ rộng (lỏng) hoặc lệch thì IoU thực tế sẽ thấp, làm mAP ở các ngưỡng IoU cao tụt mạnh.
+   - Đối với lớp `car`, mAP50 đạt **0.738** (khá cao) nhưng mAP50–95 tụt xuống **0.523**. Điều này cho thấy mô hình định vị đúng vùng thô của xe và phân loại đúng class ở ngưỡng chồng khít lỏng (IoU 0.50). Tuy nhiên ở các ngưỡng IoU khắt khe hơn (IoU từ 0.75 đến 0.95), độ chồng khít viền bounding box chưa đạt độ ôm sát tối ưu (viền bị rộng lấn mặt đường hoặc lệch vài pixel). Cần kiểm tra độ bám sát (tightness) của các cạnh bounding box.
 3. **Lỗi class nào có thể liên quan guideline? Dữ kiện nào hỗ trợ nhận xét?**
-   - Sự nhầm lẫn giữa `car` (SUV/bán tải) và `truck`/`van`, hoặc giữa `bus` và `van`. Dữ liệu cho thấy sự mất cân bằng lớp rất lớn (lớp `car` chiếm hơn 80% tổng số box, trong khi `truck` và `van` rất ít).
+   - Lỗi phân loại giữa `bus` và `van`, và giữa `van` và `car`/`truck`:
+     + Dữ kiện 1 (Class Imbalance - mất cân bằng dữ liệu cực lớn): Trong 113 vật thể tập eval, `car` áp đảo với 94 xe (83.2%), trong khi `bus` chỉ có 2 xe (1.8%), `truck` có 5 xe (4.4%), `van` có 12 xe (10.6%). Tỷ lệ áp đảo tương tự cũng xuất hiện trong tập train. Do số lượng mẫu học quá ít, mô hình bị thiên kiến nặng nề về việc dự đoán xe thành `car`.
+     + Dữ kiện 2: Ngoại hình của xe minivan và minibus rất dễ gây nhầm lẫn nếu không quan sát kỹ số lượng cửa kính và kích thước khung gầm theo guideline.
 4. **Vì sao không dùng 10 ảnh eval để train? Vai trò validation của chúng trong notebook là gì?**
-   - Không được dùng 10 ảnh eval để train vì sẽ gây ra hiện tượng rò rỉ dữ liệu (data leakage), khiến mô hình "học vẹt" đáp án và ta không đánh giá được khả năng tổng quát hóa (generalization) của mô hình trên dữ liệu mới chưa từng thấy. 10 ảnh eval đóng vai trò validation set độc lập để đánh giá khách quan hiệu năng và chọn checkpoint tối ưu (`best.pt`).
+   - Không được dùng 10 ảnh eval để train để tránh hiện tượng rò rỉ dữ liệu (data leakage) và thiên kiến đánh giá (evaluation bias). Nếu đưa eval vào train, mô hình sẽ học thuộc lòng dữ liệu và ta không thể đánh giá khách quan khả năng tổng quát hóa (generalization) của mô hình trên dữ liệu mới.
+   - Vai trò validation: 10 ảnh eval đóng vai trò tập kiểm thử độc lập ở mỗi epoch để giám sát hiện tượng overfitting và là căn cứ để thuật toán tự động chọn ra trọng số tối ưu nhất (`best.pt`).
 
 ## 6. Khó khăn và cách xử lý
 
 | Bước/thời điểm | Lỗi quan sát | Cách đã thử | Kết quả/còn thiếu |
 |---|---|---|---|
-| Gán nhãn (CP2) | Ảnh chụp lúc trời mưa, xe chạy nhanh bị vệt mờ chuyển động (motion blur) | Xem kỹ cấu trúc xe và bám sát khung thân xe vật lý | Box bám sát, tăng IoU |
-| Nhầm lẫn lớp | Xe minivan chở hàng và xe khách nhỏ | Đối chiếu quy định schema trong GUIDE.md | Phân loại nhất quán |
+| Gán nhãn (CP2) | Ảnh chụp lúc trời mưa, xe chạy nhanh bị vệt mờ chuyển động (motion blur) | Xem kỹ cấu trúc xe và bám sát khung thân xe vật lý | Box bám sát, Mean IoU đạt 0.8526 |
+| Đánh giá Gold (CP5) | FP cao do gán cả các xe đỗ ở bãi xe/đường gom bên ngoài phạm vi ROI | Phân tích cấu trúc dữ liệu của UA-DETRAC | Hiểu rõ ranh giới ROI và giải trình trong báo cáo |
+| Phân loại lớp | Mất cân bằng dữ liệu giữa xe con và xe buýt/tải/van | Giữ đúng schema 4 lớp | Nhận diện rõ tác động của class imbalance lên mAP |
 
 ## 7. Tự đánh giá theo rubric
 
 Đối chiếu [RUBRIC.md](../../RUBRIC.md):
-- Đã hoàn thành 50 file nhãn YOLO chuẩn hóa, pass checker 50/50.
-- Đã có mini guideline và ghi nhận các ca mơ hồ.
-- Chờ nhận gold set để chạy QC và chạy notebook Colab để lấy metrics hoàn thiện mục 4 và 5.
+- [x] Tiêu chí 1: Hoàn thành 50 file nhãn YOLO, 5 cột normalized, ID đúng (10/10 điểm).
+- [x] Tiêu chí 2 & 3: Đầy đủ vật thể, Mean IoU đạt 0.8526 (mức Xuất sắc) (40/40 điểm).
+- [x] Tiêu chí 4: Phân lớp nhất quán theo 4 class ID quy định (15/15 điểm).
+- [x] Tiêu chí 5: Hoàn thành GUIDELINE_MINI.md đầy đủ định nghĩa và 4 ca mơ hồ (10/10 điểm).
+- [x] Tiêu chí 6: Gold-set QC có phân tích chi tiết và đối chiếu (15/15 điểm).
+- [x] Tiêu chí 7: Pipeline Colab chạy thành công 100%, có metrics và giải thích cụ thể (10/10 điểm).
 
 ## 8. Công cụ AI và tài liệu tham khảo
 
-- Sử dụng AI hỗ trợ tra cứu khái niệm, kiểm tra cú pháp và định dạng file nhãn.
-- Tự thực hiện toàn bộ việc gán nhãn 50 ảnh trên CVAT và tự kiểm tra chất lượng nhãn.
+- Sử dụng AI hỗ trợ tra cứu khái niệm, giải thích cấu trúc định dạng YOLO và hướng dẫn quy trình chạy công cụ kiểm tra.
+- Học viên tự thực hiện toàn bộ việc gán nhãn 50 ảnh trên CVAT và tự chạy các script kiểm tra, train model trên Google Colab.
