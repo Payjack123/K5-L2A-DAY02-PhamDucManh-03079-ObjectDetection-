@@ -27,7 +27,6 @@ Tóm tắt các quyết định và cách áp dụng schema:
 ## 3. Annotation và self-QC
 
 - Số file nhãn train: 50/50 file (`drive_001.txt` đến `drive_050.txt`).
-- Tổng số bounding box đã gán: 1,141 box (Car: 983, Truck: 18, Bus: 92, Van: 48).
 - Kết quả checker và lỗi đã xử lý: Chạy `python tools/check_yolo_labels.py` ĐẠT cấu trúc 50/50 file nhãn hợp lệ, đúng 5 cột normalized trong `[0, 1]`, không có box vượt biên.
 - Danh sách 10 ảnh đã rà bằng mắt: `drive_001.jpg`, `drive_002.jpg`, `drive_005.jpg`, `drive_008.jpg`, `drive_012.jpg`, `drive_015.jpg`, `drive_020.jpg`, `drive_025.jpg`, `drive_035.jpg`, `drive_045.jpg`.
 - Lỗi bỏ sót/box/class phát hiện khi rà và cách sửa:
